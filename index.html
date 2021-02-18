@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Tourism Map For Kids</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="https://api.mapbox.com/mapbox-gl-js/v1.12.0/mapbox-gl.js"></script>
+<link href="https://api.mapbox.com/mapbox-gl-js/v1.12.0/mapbox-gl.css" rel="stylesheet" />
+<style>
+#map {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 100%;
+}
+
+.mapboxgl-popup {
+  max-width: 500px;
+  font: 12px/20px 'Helvetica Neue', Arial, Helvetica, sans-serif;
+  display: flex;
+  display: -webkit-flex;
+}
+
+.mapboxgl-popup-content {
+  position: relative;
+  background: transparent;
+  opacity: 1;
+  box-shadow: none;
+  pointer-events: auto;
+  padding: 0px;
+}
+
+.mapboxgl-popup-tip {
+  display: none;
+}
+
+#title {
+  top: 0;
+  left: 20px;
+  height: 120px;
+  margin-top: 20px;
+  width: 300px;
+}
+
+.map-overlay {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  background: rgba(255, 255, 255, 0.8);
+  margin-right: 20px;
+  font-family: Arial, sans-serif;
+  overflow: auto;
+  border-radius: 3px;
+}
+
+/* The switch - the box around the slider */
+.switch {
+	position: relative;
+	display: block;
+	vertical-align: top;
+	width: 120px;
+	height: 30px;
+	padding: 3px;
+	margin: 0;
+	background: linear-gradient(to bottom, #eeeeee, #FFFFFF 25px);
+	background-image: -webkit-linear-gradient(top, #eeeeee, #FFFFFF 25px);
+	border-radius: 18px;
+	box-shadow: inset 0 -1px white, inset 0 1px 1px rgba(0, 0, 0, 0.05);
+	cursor: pointer;
+  box-sizing: content-box;
+}
+#switch-input {
+	position: absolute;
+	top: 0;
+	left: 0;
+	opacity: 0;
+  box-sizing:content-box;
+}
+.switch-label {
+	position: relative;
+	display: block;
+	height: inherit;
+	font-size: 10px;
+	text-transform: uppercase;
+	background: #eceeef;
+	border-radius: inherit;
+	box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.12), inset 0 0 2px rgba(0, 0, 0, 0.15);
+  box-sizing:content-box;
+}
+.switch-label:before, .switch-label:after {
+	position: absolute;
+	top: 50%;
+	margin-top: -.5em;
+	line-height: 1;
+	-webkit-transition: inherit;
+	-moz-transition: inherit;
+	-o-transition: inherit;
+	transition: inherit;
+  box-sizing:content-box;
+}
+.switch-label:before {
+	content: attr(data-off);
+	right: 11px;
+	color: #aaaaaa;
+	text-shadow: 0 1px rgba(255, 255, 255, 0.5);
+}
+.switch-label:after {
+	content: attr(data-on);
+	left: 11px;
+	color: #FFFFFF;
+	text-shadow: 0 1px rgba(0, 0, 0, 0.2);
+	opacity: 0;
+}
+#switch-input:checked ~ .switch-label {
+	background: #E1B42B;
+	box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.15), inset 0 0 3px rgba(0, 0, 0, 0.2);
+}
+#switch-input:checked ~ .switch-label:before {
+	opacity: 0;
+}
+#switch-input:checked ~ .switch-label:after {
+	opacity: 1;
+}
+.switch-handle {
+	position: absolute;
+	top: 4px;
+	left: 4px;
+	width: 28px;
+	height: 28px;
+	background: linear-gradient(to bottom, #FFFFFF 40%, #f0f0f0);
+	background-image: -webkit-linear-gradient(top, #FFFFFF 40%, #f0f0f0);
+	border-radius: 100%;
+	box-shadow: 1px 1px 5px rgba(0, 0, 0, 0.2);
+}
+.switch-handle:before {
+	content: "";
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	margin: -6px 0 0 -6px;
+	width: 5px;
+	height: 12px;
+	background: linear-gradient(to bottom, #eeeeee, #FFFFFF);
+	background-image: -webkit-linear-gradient(top, #eeeeee, #FFFFFF);
+	border-radius: 6px;
+	box-shadow: inset 0 1px rgba(0, 0, 0, 0.02);
+}
+
+#switch-input:checked ~ .switch-handle {
+	left: 95px;
+	box-shadow: -1px 1px 5px rgba(0, 0, 0, 0.2);
+}
+
+.mapbox-directions-origin,.mapbox-directions-destination
+         {
+            display: none;
+        }
+.directions-reverse {
+  visibility: hidden;
+}
+
+.mapbox-directions-profile,.mapbox-directions-component-keyline {
+  position: absolute;
+  left: 50px;
+ }
+#menu  {
+  position: absolute;
+  display: inline-block;
+  background-color: white;
+  margin: 2px 0 0;
+  padding: 2px;
+  border-radius: 15px;
+  visibility: hidden;
+
+  top: 10px;
+  right: 10px;
+}
+#menu label {
+  cursor: pointer;
+  display: block;
+  border-radius: 10px;
+  padding: 3px 5px;
+  font-size: 15px;
+  color: rgba(0, 0, 0, .5);
+  line-height: 20px;
+  text-align: center;
+  float: left;
+}
+
+#menu label:hover {
+  color: rgba(0, 0, 0, .75);
+}
+#menu input[type=radio] {
+  display: none;
+}
+
+#menu input[type=radio]:checked + label:hover,
+
+#menu input[type=radio]:checked + label {
+  background: #eee;
+  color: rgba(0, 0, 0, .75);
+} 
+</style>
+</head>
+<body>
+<script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.1.0/mapbox-gl-directions.js"></script>
+<link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.1.0/mapbox-gl-directions.css" type="text/css"/>
+<div id="map">
+</div>
+<div>
+<label class="switch">
+  <input id="switch-input" type="checkbox" />
+  <span class="switch-label" data-on="Parent-Mode" data-off="Child-Mode"></span> <span class="switch-handle"></span> 
+</label>
+
+<div id="menu">
+    <input type="radio" id="parent_food" name="rtog" value="Restaurant/Cafe">
+    <label for="parent_food">Restaurant/Cafe</label>
+    <input type="radio" id="parent_amen" name="rtog" value="Amenitie-Services" checked="checked">
+    <label for="parent_amen">Amenitie-Services</label>
+    <input type="radio" id="parent_shop" name="rtog" value="Local-Shop">
+    <label for="parent_shop">Local-Shops</label>    
+</div>
+</div>
+<script>
+mapboxgl.accessToken = 'pk.eyJ1IjoibGlvbnNvbGEiLCJhIjoiY2tldmR0dXB1MDQycjJ6cDkzODR2MTl5eiJ9.AYlsOFmreWi2kC0AAPFY3Q';
+
+// Parameters for Bing Image search API
+const API_KEY_COOKIE   = "bing-search-api-key";
+const CLIENT_ID_COOKIE = "bing-search-client-id";
+const BING_ENDPOINT = "https://api.cognitive.microsoft.com/bing/v7.0/images/search";
+
+// Fix the map around City of Melbourne
+const bounds = [
+  [144.920, -37.850], // Southwest coordinates
+  [145.005, -37.785] // Northeast coordinates
+];
+
+const popupOffsets = {
+  'left': [25, 0],
+  'top': [0, 25],
+  'top-left': [30, 20],
+  'top-right': [-30, 20],
+  'bottom-left': [30, -20],
+  'bottom-right': [-30, -20]
+};
+
+// Directions Plug-in from Mapbox for routing
+const directions = new MapboxDirections({
+  accessToken:mapboxgl.accessToken,
+  unit: 'metric', // Use the metric system to display distances.
+  profile: 'mapbox/driving-traffic', // Set the initial profile to walking.
+  container: 'directions',
+  controls:{instructions:false}
+});
+
+// Locate user
+const geolocate = new mapboxgl.GeolocateControl({
+  positionOptions: {
+    enableHighAccuracy: true
+  },
+  fitBoundsOptions: {
+  	maxZoom: 14
+  },
+  trackUserLocation: true,
+  showAccuracyCircle:false
+});
+
+const map = new mapboxgl.Map({
+  container: 'map',
+  style: 'mapbox://styles/lionsola/ckg74pree0e7e19pcxibkc184/draft',
+  center: [144.965842, -37.816289],
+  zoom: 14,
+  minZoom: 14,
+  maxZoom: 16,
+  maxBounds: bounds
+});
+map.addControl(geolocate,'bottom-right');
+
+var currentDes = null;
+var userLoc = null;
+var popups = [];
+var parentMode = false;
+var zoomCen = null;
+var parent_layer;
+
+// Search Bing for images of one location
+function queryImagesForLocation(location) {
+    let request = new XMLHttpRequest();
+    let query = location.properties.name + ", Melbourne";
+    let queryurl = BING_ENDPOINT + "?q=" + encodeURIComponent(query) + "&mkt=en-US&SafeSearch=strict&aspect=all&count=10&offset=0";
+    let key = 'bebe803402d943a383f2a32b0e95f411';
+    storeValue(API_KEY_COOKIE, key);
+
+    // open the request
+    try {
+        request.open("GET", queryurl);
+    } 
+    catch (e) {
+        console.log("Bad request (invalid URL)\n" + queryurl);
+    }
+
+    // add request headers
+    request.setRequestHeader("Ocp-Apim-Subscription-Key", key);
+    request.setRequestHeader("Accept", "application/json");
+    let clientid = retrieveValue(CLIENT_ID_COOKIE);
+    if (clientid) request.setRequestHeader("X-MSEdge-ClientID", clientid);
+    
+    // event handler for successful response  
+    request.onreadystatechange = function() 
+		{
+      if (request.readyState == 4) {
+        let json = this.responseText.trim();
+        let jsobj = {};
+
+        // try to parse JSON results
+        try {
+            if (json.length) jsobj = JSON.parse(json);
+        } catch(e) {
+            console.log("Invalid JSON response");
+        }
+        // get 4 top images and display them
+        let imageUrls = [];
+        for (let i=0; i<4; i++) {
+          imageUrls.push(jsobj.value[i].contentUrl);
+          displayKidPopupsURLs(location, imageUrls);
+        }
+      }
+		};
+  
+   	request.send();
+}
+
+/**
+ * Use Mapbox GL JS's `flyTo` to move the camera smoothly
+ * a given center point.
+ **/
+function flyToStore(currentFeature) {
+  map.panTo(currentFeature, {
+    duration: 500
+  });
+}
+
+/**
+ * Add a layer highlighting chosen destination
+ **/
+function highlightDestination(location) {
+	if (location) {
+    map.addLayer({
+      filter: ["match", ["get", "name"],
+               [location.properties.name], true, false
+              ],
+      id: "destination",
+      layout: {
+
+        'icon-padding': 0,
+        'icon-image': ["match", ["get", "type"],
+                       ["Library"], "bookshelf", ["Park"], "forest", ["Theatre"], "theatre", ["Museum"], "british-museum", ["Books"], "bookshelf", ["Cinema"], "popcorn", ["Garden"], "tulip", ["Playground"], "swing", ["Aquarium"], "aquarium", ["Zoo"], "zoo", ["Gallery"], "photo", ["Bridge"], "bridge", ["Pier", "Marina"], "pies", "beer-15"
+                      ],
+        'icon-size': ["interpolate", ["linear"],
+                      ["zoom"], 13, 0.06, 15, 0.1
+                     ],
+              'text-anchor': "top",
+        'text-field': ["to-string", ["get", "name"]],
+        'text-offset': [0, 1.5],
+        'text-size': 14,
+      },
+      source: "mapbox-streets",
+      'source-layer': "poi_label",
+      type: "symbol"
+    });
+  }
+}
+
+/**
+ * Remove the layer highlighting chosen destination
+ **/
+function removeDestinationHighlight() {
+	if (map.getLayer("destination")) {
+		map.removeLayer("destination");
+  }
+}
+
+/**
+* Display image popups based on destination
+**/
+function displayKidPopups(location) {
+	if (map.getZoom() <= map.getMinZoom()) {
+  	// display popups using a pre-built library of destination images
+  	let urls = [];
+    let name = location.properties.name.replace(/\s/g, "%20");
+    for (let i=1;i<5;i++) {
+			urls.push('https://raw.githubusercontent.com/changyuanl/GEOM90007/main/' + i + '/' + name + '.jpg');
+    }
+    displayKidPopupsURLs(location, urls);
+  } else {
+  	// search images via Bing API
+    queryImagesForLocation(location);	
+  }
+}
+
+/**
+ * Display popups from given image urls, 
+ **/
+function displayKidPopupsURLs(location, urls) {
+	let description = location.properties.name;
+  let coordinates = location.geometry.coordinates.slice();
+  let changed = description.replace(/\s/g, "%20");
+  popups = [];
+  popups.push(new mapboxgl.Popup({anchor: "left", offset: popupOffsets, closeButton: false, className: "name-popup"})
+              .setLngLat(coordinates)
+              .setHTML(description)
+              .addTo(map));
+  popups.push(new mapboxgl.Popup({anchor: "bottom-left", offset: popupOffsets, closeButton: false})
+              .setLngLat(coordinates)
+              .setHTML('<img width=200 height=150 src =' + urls[0] + '>')
+              .addTo(map));
+  popups.push(new mapboxgl.Popup({anchor: "bottom-right", offset: popupOffsets, closeButton: false})
+              .setLngLat(coordinates)
+              .setHTML('<img width=200 height=150 src =' + urls[1] + '>')
+              .addTo(map));
+
+  popups.push(new mapboxgl.Popup({anchor: "top-left", offset: popupOffsets, closeButton: false})
+              .setLngLat(coordinates)
+              .setHTML('<img width=200 height=150 src =' + urls[2] + '>')
+              .addTo(map));
+
+  popups.push(new mapboxgl.Popup({anchor: "top-right", offset: popupOffsets, closeButton: false})
+              .setLngLat(coordinates)
+              .setHTML('<img width=200 height=150 src =' + urls[3] + '>')
+              .addTo(map));
+}
+
+/**
+ * Switch visible layer of amenity in parent mode
+ **/
+function switchLayer(layer) 
+{
+  parent_layer = layer.target.id;
+  map.setLayoutProperty("parent_food", 'visibility', 'none');
+	map.setLayoutProperty("parent_amen", 'visibility', 'none');
+  map.setLayoutProperty("parent_shop", 'visibility', 'none');
+  map.setLayoutProperty(parent_layer, 'visibility', 'visible');
+}
+
+geolocate.on('geolocate', (e) => {
+  userLoc = [e.coords.longitude, e.coords.latitude];
+  directions.setOrigin(userLoc);
+});
+
+// Set callback function for layer menu buttons
+let inputs = document.getElementById('menu').getElementsByTagName('input');
+for (let i = 0; i < inputs.length; i++) 
+{
+  inputs[i].onclick = switchLayer;
+  if (inputs[i].checked) {
+  	parent_layer = inputs[i].id;
+  }
+}
+
+// Check cookie cache for Bing 
+try {
+    localStorage.getItem;   // try localStorage
+
+    window.retrieveValue = function (name) {
+        return localStorage.getItem(name) || "";
+    }
+    window.storeValue = function(name, value) {
+        localStorage.setItem(name, value);
+    }
+} catch (e) {
+    window.retrieveValue = function (name) {
+        let cookies = document.cookie.split(";");
+        for (let i = 0; i < cookies.length; i++) {
+            let keyvalue = cookies[i].split("=");
+            if (keyvalue[0].trim() === name) return keyvalue[1];
+        }
+        return "";
+    }
+    window.storeValue = function (name, value) {
+        let expiry = new Date();
+        expiry.setFullYear(expiry.getFullYear() + 1);
+        document.cookie = name + "=" + value.trim() + "; expires=" + expiry.toUTCString();
+    }
+}
+
+// Add callback for switch mode button
+document.getElementById("switch-input").addEventListener("change", function(element) {
+	let isChecked = document.getElementById("switch-input").checked;
+  if (isChecked) {
+  	// Enable travel mode and layer filter menu
+    map.addControl(directions,"bottom-right");
+    directions.options.controls.inputs = true;
+    document.getElementById("menu").style.visibility="visible";
+    
+    // Set origin and destination if available and display routing
+ 		if (userLoc) {
+      directions.setOrigin(userLoc);
+		}
+    if (currentDes) {
+    	directions.setDestination(currentDes.geometry.coordinates.slice());
+    }
+    
+    // Enable relevant parent-mode layers and disable kid symbols
+    map.moveLayer("road_labels");
+    map.moveLayer("parent_food");
+    map.moveLayer("parent_amen");
+    map.moveLayer("parent_shop");
+    map.setLayoutProperty(parent_layer, 'visibility', 'visible');
+    map.setLayoutProperty("road_labels", 'visibility', 'visible');
+    map.setLayoutProperty("kid", 'visibility', 'none');
+    
+    // clear popups in kid mode
+    console.log(popups.length);
+    for (let pop of popups) {
+      if (pop.isOpen()) {
+        pop.remove();
+      }
+    }
+    popups = [];
+    
+    // highlight chosen destination
+    highlightDestination(currentDes);
+    parentMode = true;
+  } else {
+  	// remove adult-mode controls and layers
+    map.removeControl(directions);
+    document.getElementById("menu").style.visibility="hidden";
+    map.setLayoutProperty("parent_food", 'visibility', 'none');
+    map.setLayoutProperty("parent_amen", 'visibility', 'none');
+    map.setLayoutProperty("parent_shop", 'visibility', 'none');
+    map.setLayoutProperty("road_labels", 'visibility', 'none');
+    removeDestinationHighlight();
+    
+    // re-enable kid destination layer
+    map.setLayoutProperty("kid", 'visibility', 'visible');
+    
+    // re-display image popups
+    if (currentDes) {
+    	displayKidPopups(currentDes);
+    }
+    parentMode = false;
+  }
+});
+
+map.on('load', function() {
+  map.addSource("mapbox-streets", {
+    type: "vector",
+    url: "mapbox://mapbox.mapbox-streets-v8",
+    minzoom: 0,
+    maxzoom: 16,
+    bounds: [144.950, -37.840, 144.980, -37.805]
+  });
+
+	// add custom layers to control visibility
+  map.addLayer({
+    filter: ["step", ["zoom"],
+      ["match", ["get", "class"],
+        ["motorway", "trunk", "primary", "secondary", "tertiary"], true, false
+      ], 15.25, ["match", ["get", "class"],
+        ["motorway", "trunk", "primary", "secondary", "tertiary", "street"], true, false
+      ], 16, ["match", ["get", "class"],
+        ["motorway", "trunk", "primary", "secondary", "tertiary", "street", "street_limited"], true, false
+      ], 16.5, ["match", ["get", "class"],
+        ["pedestrian", "golf", "ferry", "aerialway", "path", "track", "service"], false, true
+      ]
+    ],
+    id: "road_labels",
+    layout: {
+      'symbol-placement': "line",
+      'symbol-spacing': ["interpolate", ["linear"],
+        ["zoom"], 10, 150, 18, 450, 22, 1500
+      ],
+      'text-field': ["coalesce", ["get", "name_en"],
+        ["get", "name"]
+      ],
+      'text-font': ["DIN Pro Regular", "Arial Unicode MS Regular"],
+      'text-letter-spacing': 0.01,
+      'text-max-angle': 30,
+      'text-padding': 1,
+      'text-pitch-alignment': "viewport",
+      'text-rotation-alignment': "map",
+      'text-size': ["interpolate", ["linear"],
+        ["zoom"], 10, ["match", ["get", "class"],
+          ["motorway", "trunk", "primary", "secondary", "tertiary"], 10, ["motorway_link", "trunk_link", "primary_link", "secondary_link", "tertiary_link", "street", "street_limited"], 8, 6.5
+        ], 18, ["match", ["get", "class"],
+          ["motorway", "trunk", "primary", "secondary", "tertiary"], 16, ["motorway_link", "trunk_link", "primary_link", "secondary_link", "tertiary_link", "street", "street_limited"], 14, 13
+        ], 22, ["match", ["get", "class"],
+          ["motorway", "trunk", "primary", "secondary", "tertiary"], 50, ["motorway_link", "trunk_link", "primary_link", "secondary_link", "tertiary_link", "street", "street_limited"], 40, 30
+        ]
+      ],
+      visibility: "none"
+    },
+    metadata: {
+      'mapbox:featureComponent': "road-network",
+      'mapbox:group': "Road network, road-labels"
+    },
+    minzoom: 14,
+    paint: {
+      'text-color': "hsl(185, 3%, 47%)",
+      'text-halo-blur': 1,
+      'text-halo-color': "hsl(185, 1%, 100%)",
+      'text-halo-width': 1
+    },
+    source: "mapbox-streets",
+    'source-layer': "road",
+    type: "symbol"
+  });
+
+  map.addLayer({
+    filter: ["match", ["get", "type"],
+      ["Aquarium", "Zoo", "Park", "Garden", "Museum", "Playground", "Theatre", "Books", "Library", "Cinema", "Gallery", "Bridge", "Pier", "Marina"], true, false
+    ],
+    id: "kid",
+    layout: {
+
+      'icon-padding': 0,
+      'icon-image': ["match", ["get", "type"],
+        ["Library"], "bookshelf", ["Park"], "forest", ["Theatre"], "theatre", ["Museum"], "british-museum", ["Books"], "bookshelf", ["Cinema"], "popcorn", ["Garden"], "tulip", ["Playground"], "swing", ["Aquarium"], "aquarium", ["Zoo"], "zoo", ["Gallery"], "photo", ["Bridge"], "bridge", ["Pier", "Marina"], "pies", "beer-15"
+      ],
+      'icon-size': ["interpolate", ["linear"],
+        ["zoom"], 13, 0.06, 15, 0.1
+      ]
+    },
+    source: "mapbox-streets",
+    'source-layer': "poi_label",
+    type: "symbol"
+  });
+
+  map.addLayer({
+    filter: ["match", ["get", "type"],
+      ["Restaurant", "Cafe", "Fast Food"], true, false
+    ],
+    id: "parent_food",
+    layout: {
+      'icon-image': ["concat", ["get", "maki"], "-15"],
+      'text-anchor': "top",
+      'text-field': ["to-string", ["get", "name"]],
+      'text-offset': [0, 1],
+      'text-size': 14,
+      visibility: "none"
+    },
+    source: "mapbox-streets",
+    'source-layer': "poi_label",
+    type: "symbol"
+  });
+
+  map.addLayer({
+    filter: ["match", ["get", "type"],
+      ["Hospital", "Police", "Toilets", "Post Office", "Drinking Water", "Parking", "Parking Garage", "Fuel"], true, false
+    ],
+    id: "parent_amen",
+    layout: {
+      'icon-image': ["concat", ["get", "maki"], "-15"],
+      'text-anchor': "top",
+      'text-field': ["match", ["get", "type"],
+        ["Hospital", "Police", "Post Office", "Fuel", "Parking"],
+        ["coalesce", ["get", "name"],
+          ["get", "type"]
+        ], ""
+      ],
+      'text-offset': [0, 1],
+      'text-size': ["interpolate", ["linear"],
+        ["zoom"], 0, ["interpolate", ["linear"],
+          ["get", "sizerank"], 0, 18, 5, 12
+        ], 17, ["interpolate", ["linear"],
+          ["get", "sizerank"], 0, 18, 13, 12
+        ]
+      ],
+      visibility: "none"
+    },
+    source: "mapbox-streets",
+    'source-layer': "poi_label",
+    type: "symbol"
+  });
+
+  map.addLayer({
+    filter: ["match", ["get", "type"],
+      ["Convenience", "Pharmacy", "Supermarket"], true, false
+    ],
+    id: "parent_shop",
+    layout: {
+      'icon-image': ["concat", ["get", "maki"], "-15"],
+      'text-anchor': "top",
+      'text-field': ["to-string", ["get", "name"]],
+      'text-offset': [0, 1],
+      'text-size': ["interpolate", ["linear"],
+        ["zoom"], 0, ["interpolate", ["linear"],
+          ["get", "sizerank"], 0, 18, 5, 12
+        ], 17, ["interpolate", ["linear"],
+          ["get", "sizerank"], 0, 18, 13, 12
+        ]
+      ],
+      visibility: "none"
+    },
+    source: "mapbox-streets",
+    'source-layer': "poi_label",
+    type: "symbol"
+  });
+
+	// Force 2 fixed zoom levels in kid mode to reduce complexity
+  let lastZoom = map.getZoom();
+  map.on('zoomend', () => {
+    const currentZoom = map.getZoom();
+    if (!parentMode) {
+      if (currentZoom < map.getMaxZoom() && currentZoom > lastZoom) {
+        // zoom in
+        map.easeTo({
+          center: zoomCen,
+          zoom: map.getMaxZoom(),
+          duration: 500
+        });
+
+      } else if (currentZoom > map.getMinZoom() && currentZoom < lastZoom) {
+        // zoom out
+        map.zoomTo(map.getMinZoom(), {
+          duration: 500
+        });
+      }
+    }
+    lastZoom = currentZoom;
+  });
+  
+  // clicking outside of kid layer clears chosen destination
+	map.on('click', function (e) {
+  	if (!parentMode) {
+  		currentDes = null;
+    }
+    popups = [];
+  });
+  
+  // clicking on kid layer shows popups
+  map.on('click', 'kid', function(e) {
+    displayKidPopups(e.features[0]);
+    currentDes = e.features[0];
+    
+    let coordinates = e.features[0].geometry.coordinates.slice();    
+    
+    // Ensure that if the map is zoomed out such that multiple
+    // copies of the feature are visible, the popup appears
+    // over the copy being pointed to.
+    while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
+      coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
+    }
+
+    // Center the map on the chosen destination
+    flyToStore(coordinates);
+  });
+
+  // Change the cursor to a pointer when the mouse is over the places layer.
+  map.on('mouseenter', 'kid', function() {
+    map.getCanvas().style.cursor = 'pointer';
+  });
+
+  // Change it back to a pointer when it leaves.
+  map.on('mouseleave', 'kid', function() {
+    map.getCanvas().style.cursor = '';
+  });
+
+	// Track center of mouse / touch event to zoom in correctly
+  map.on('mousemove', function(e) {
+    zoomCen = e.lngLat;
+  });
+  map.on('touchend', function(e) {
+    zoomCen = e.lngLat;
+  });
+});
+</script>
+</body>
+</html>
