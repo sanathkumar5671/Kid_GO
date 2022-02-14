@@ -7,4 +7,4 @@ I have proposed a solution designed for the young explorers from the age group o
 
 To Interact with the MAP Please visit:
 
-https://raw.githack.com/sanathkumar5671/Kid_GO/main/index.html
+https://rawcdn.githack.com/sanathkumar5671/Kid_GO/8c2707567651770196dc23e9ecc19f9571286616/index.html
